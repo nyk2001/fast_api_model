@@ -1,0 +1,34 @@
+# Ignore model artifacts
+*.joblib
+*.pkl
+*.h5
+
+# Ignore virtual environments
+venv/
+env/
+.venv/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore Python cache and build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Ignore environment variables
+.env
+.env.local
+
+# Ignore Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Ignore log files
+*.log

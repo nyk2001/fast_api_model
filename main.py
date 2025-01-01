@@ -1,39 +1,44 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
+import numpy as np
+import joblib
 
-# Create an instance of FastAPI
+# Function to load model and scaler
+def load_artifacts(model_path: str, scaler_path: str):
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+    return model, scaler
+
+# Load the trained model and scaler
+model, scaler = load_artifacts("model.joblib", "scaler.joblib")
+
+# Define a Pydantic model for input validation
+class CustomerInput(BaseModel):
+    age: int
+    suburb_code: int
+    salary: int
+
+# Create a FastAPI instance
 app = FastAPI()
 
-# In-memory storage for user data
-user_data = {}
-
-# Pydantic model for user input
-class UserInput(BaseModel):
-    name: str
-    age: int
-
-# Route to display all user data
-@app.get("/")
-def read_root():
-    return {"users": user_data}
-
-# Route to add or update user data
-@app.post("/users/{user_id}")
-def add_or_update_user(user_id: int, user: UserInput):
-    user_data[user_id] = {"name": user.name, "age": user.age}
-    return {"message": "User added/updated", "user_id": user_id, "user_data": user_data[user_id]}
-
-# Route to get specific user data
-@app.get("/users/{user_id}")
-def get_user(user_id: int):
-    if user_id not in user_data:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"user_id": user_id, "user_data": user_data[user_id]}
-
-# Route to delete user data
-@app.delete("/users/{user_id}")
-def delete_user(user_id: int):
-    if user_id not in user_data:
-        raise HTTPException(status_code=404, detail="User not found")
-    deleted_user = user_data.pop(user_id)
-    return {"message": "User deleted", "deleted_user": deleted_user}
+# Inference endpoint
+@app.post("/predict")
+def predict_class(customer: CustomerInput):
+    # Prepare the input data
+    input_data = np.array([[customer.age, customer.suburb_code, customer.salary]])
+    
+    # Standardize the input data
+    input_scaled = scaler.transform(input_data)
+    
+    # Make a prediction
+    prediction = model.predict(input_scaled)
+    
+    # Map the prediction to a class label
+    if prediction < 0.5:
+        class_label = "Poor"
+    elif prediction < 1.5:
+        class_label = "Middle Class"
+    else:
+        class_label = "High Class"
+    
+    return {"prediction": class_label}

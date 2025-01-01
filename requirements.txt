@@ -1,2 +1,4 @@
-fastapi
-uvicorn
+fastapi==0.115.6
+uvicorn==0.34.0
+numpy==2.0.2
+scikit-learn==1.6.0
